@@ -106,9 +106,10 @@ public abstract class BaseTransactionalExecutor<T, S extends Statement> implemen
     public T execute(Object... args) throws Throwable {
         String xid = RootContext.getXID();
         if (xid != null) {
+            // 获取xid
             statementProxy.getConnectionProxy().bind(xid);
         }
-
+        // 设置全局锁
         statementProxy.getConnectionProxy().setGlobalLockRequire(RootContext.requireGlobalLock());
         return doExecute(args);
     }

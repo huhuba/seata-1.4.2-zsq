@@ -63,6 +63,7 @@ public interface TransactionalExecutor {
         RollbackFailure,
 
         /**
+         * <ul>回滚完成的代码</ul>
          * Rollback done code.
          */
         //

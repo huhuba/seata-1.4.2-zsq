@@ -238,7 +238,7 @@ public abstract class AbstractUndoLogManager implements UndoLogManager {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Flushing UNDO LOG: {}", new String(undoLogContent, Constants.DEFAULT_CHARSET));
         }
-
+        // 写入数据库具体位置
         insertUndoLogWithNormal(xid, branchId, buildContext(parser.getName(), compressorType), undoLogContent, cp.getTargetConnection());
     }
 

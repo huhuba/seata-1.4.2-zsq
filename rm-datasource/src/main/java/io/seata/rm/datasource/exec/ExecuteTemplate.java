@@ -66,24 +66,29 @@ public class ExecuteTemplate {
                                                      StatementProxy<S> statementProxy,
                                                      StatementCallback<T, S> statementCallback,
                                                      Object... args) throws SQLException {
+        // 如果没有全局锁，并且不是AT模式，直接执行SQL
         if (!RootContext.requireGlobalLock() && BranchType.AT != RootContext.getBranchType()) {
             // Just work as original statement
             return statementCallback.execute(statementProxy.getTargetStatement(), args);
         }
-
+        // 得到数据库类型 ->MySQL
         String dbType = statementProxy.getConnectionProxy().getDbType();
         if (CollectionUtils.isEmpty(sqlRecognizers)) {
+            //sqlRecognizers为SQL语句的解析器，获取执行的SQL，通过它可以获得SQL语句表名、相关的列名、类型的等信息，最后解析出对应的SQL表达式
             sqlRecognizers = SQLVisitorFactory.get(
                     statementProxy.getTargetSQL(),
                     dbType);
         }
         Executor<T> executor;
         if (CollectionUtils.isEmpty(sqlRecognizers)) {
+            //如果seata没有找到合适的SQL语句解析器，那么便创建简单执行器PlainExecutor，
+            //PlainExecutor直接使用原生的Statement对象执行SQL
             executor = new PlainExecutor<>(statementProxy, statementCallback);
         } else {
             if (sqlRecognizers.size() == 1) {
                 SQLRecognizer sqlRecognizer = sqlRecognizers.get(0);
                 switch (sqlRecognizer.getSQLType()) {
+                    //下面根据是增、删、改、加锁查询、普通查询分别创建对应的处理器
                     case INSERT:
                         executor = EnhancedServiceLoader.load(InsertExecutor.class, dbType,
                                 new Class[]{StatementProxy.class, StatementCallback.class, SQLRecognizer.class},
@@ -103,11 +108,13 @@ public class ExecuteTemplate {
                         break;
                 }
             } else {
+                // 此执行器可以处理一条SQL语句包含多个Delete、Update语句
                 executor = new MultiExecutor<>(statementProxy, statementCallback, sqlRecognizers);
             }
         }
         T rs;
         try {
+            // 执行器执行
             rs = executor.execute(args);
         } catch (Throwable ex) {
             if (!(ex instanceof SQLException)) {

@@ -271,15 +271,19 @@ public class GlobalTransactionScanner extends AbstractAutoProxyCreator
                 }
 
                 LOGGER.info("Bean[{}] with name [{}] would use interceptor [{}]", bean.getClass().getName(), beanName, interceptor.getClass().getName());
+                // 检查是否是代理对象
                 if (!AopUtils.isAopProxy(bean)) {
+                    // 不是调用Spring代理（父级）
                     bean = super.wrapIfNecessary(bean, beanName, cacheKey);
                 } else {
+                    // 已经是代理对象，反射获取代理类中的已经存在的拦截器组合，然后添加到该集合当中
                     AdvisedSupport advised = SpringProxyUtils.getAdvisedSupport(bean);
                     Advisor[] advisor = buildAdvisors(beanName, getAdvicesAndAdvisorsForBean(null, null, null));
                     for (Advisor avr : advisor) {
                         advised.addAdvisor(0, avr);
                     }
                 }
+                // 将Bean添加到Set中
                 PROXYED_SET.add(beanName);
                 return bean;
             }

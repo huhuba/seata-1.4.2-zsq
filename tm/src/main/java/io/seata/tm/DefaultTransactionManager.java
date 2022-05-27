@@ -50,10 +50,12 @@ public class DefaultTransactionManager implements TransactionManager {
         GlobalBeginRequest request = new GlobalBeginRequest();
         request.setTransactionName(name);
         request.setTimeout(timeout);
+        // 发送请求得到响应
         GlobalBeginResponse response = (GlobalBeginResponse) syncCall(request);
         if (response.getResultCode() == ResultCode.Failed) {
             throw new TmTransactionException(TransactionExceptionCode.BeginFailed, response.getMsg());
         }
+        //返回Xid
         return response.getXid();
     }
 
@@ -90,6 +92,12 @@ public class DefaultTransactionManager implements TransactionManager {
         return response.getGlobalStatus();
     }
 
+    /**
+     * 异步调用
+     * @param request
+     * @return
+     * @throws TransactionException
+     */
     private AbstractTransactionResponse syncCall(AbstractTransactionRequest request) throws TransactionException {
         try {
             return (AbstractTransactionResponse) TmNettyRemotingClient.getInstance().sendSyncRequest(request);

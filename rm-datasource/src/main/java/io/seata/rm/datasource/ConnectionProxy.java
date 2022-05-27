@@ -185,6 +185,7 @@ public class ConnectionProxy extends AbstractConnectionProxy {
     public void commit() throws SQLException {
         try {
             LOCK_RETRY_POLICY.execute(() -> {
+                // 具体执行
                 doCommit();
                 return null;
             });
@@ -226,6 +227,7 @@ public class ConnectionProxy extends AbstractConnectionProxy {
 
 
     private void doCommit() throws SQLException {
+        //判断是否存在全局事务
         if (context.inGlobalTransaction()) {
             processGlobalTransactionCommit();
         } else if (context.isGlobalLockRequire()) {
@@ -247,12 +249,15 @@ public class ConnectionProxy extends AbstractConnectionProxy {
 
     private void processGlobalTransactionCommit() throws SQLException {
         try {
+            // 注册分支
             register();
         } catch (TransactionException e) {
             recognizeLockKeyConflictException(e, context.buildLockKeys());
         }
         try {
+            //写入数据库undolog
             UndoLogManagerFactory.getUndoLogManager(this.getDbType()).flushUndoLogs(this);
+            //执行原生提交
             targetConnection.commit();
         } catch (Throwable ex) {
             LOGGER.error("process connectionProxy commit error: {}", ex.getMessage(), ex);
@@ -265,10 +270,15 @@ public class ConnectionProxy extends AbstractConnectionProxy {
         context.reset();
     }
 
+    /**
+     *  注册分支事务，生成分支事务id
+     * @throws TransactionException
+     */
     private void register() throws TransactionException {
         if (!context.hasUndoLog() || !context.hasLockKey()) {
             return;
         }
+        // 注册分支事务
         Long branchId = DefaultResourceManager.get().branchRegister(BranchType.AT, getDataSourceProxy().getResourceId(),
             null, context.getXid(), null, context.buildLockKeys());
         context.setBranchId(branchId);

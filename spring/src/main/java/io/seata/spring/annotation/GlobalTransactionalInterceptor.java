@@ -183,7 +183,7 @@ public class GlobalTransactionalInterceptor implements ConfigurationChangeListen
                 public Object execute() throws Throwable {
                     return methodInvocation.proceed();
                 }
-
+                // 获取事务名称，默认获取方法名
                 public String name() {
                     String name = globalTrxAnno.name();
                     if (!StringUtils.isNullOrEmpty(name)) {
@@ -191,22 +191,27 @@ public class GlobalTransactionalInterceptor implements ConfigurationChangeListen
                     }
                     return formatMethod(methodInvocation.getMethod());
                 }
-
+                /**
+                 * 解析GlobalTransactional注解属性，封装为对象
+                 * @return
+                 */
                 @Override
                 public TransactionInfo getTransactionInfo() {
                     // reset the value of timeout
+                    // 获取超时时间，默认60秒
                     int timeout = globalTrxAnno.timeoutMills();
                     if (timeout <= 0 || timeout == DEFAULT_GLOBAL_TRANSACTION_TIMEOUT) {
                         timeout = defaultGlobalTransactionTimeout;
                     }
-
+                    // 构建事务信息对象
                     TransactionInfo transactionInfo = new TransactionInfo();
-                    transactionInfo.setTimeOut(timeout);
-                    transactionInfo.setName(name());
-                    transactionInfo.setPropagation(globalTrxAnno.propagation());
-                    transactionInfo.setLockRetryInternal(globalTrxAnno.lockRetryInternal());
-                    transactionInfo.setLockRetryTimes(globalTrxAnno.lockRetryTimes());
+                    transactionInfo.setTimeOut(timeout);// 超时时间
+                    transactionInfo.setName(name());// 事务名称
+                    transactionInfo.setPropagation(globalTrxAnno.propagation());// 事务传播属性
+                    transactionInfo.setLockRetryInternal(globalTrxAnno.lockRetryInternal());// 校验或占用全局锁重试间隔
+                    transactionInfo.setLockRetryTimes(globalTrxAnno.lockRetryTimes());// 校验或占用全局锁重试次数
                     Set<RollbackRule> rollbackRules = new LinkedHashSet<>();
+                    // 其他构建信息
                     for (Class<?> rbRule : globalTrxAnno.rollbackFor()) {
                         rollbackRules.add(new RollbackRule(rbRule));
                     }
@@ -224,6 +229,7 @@ public class GlobalTransactionalInterceptor implements ConfigurationChangeListen
                 }
             });
         } catch (TransactionalExecutor.ExecutionException e) {
+            // 执行异常
             TransactionalExecutor.Code code = e.getCode();
             switch (code) {
                 case RollbackDone:

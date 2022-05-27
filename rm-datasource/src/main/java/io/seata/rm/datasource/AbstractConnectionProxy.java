@@ -98,22 +98,28 @@ public abstract class AbstractConnectionProxy implements Connection {
 
     @Override
     public Statement createStatement() throws SQLException {
+        //调用真实连接对象获得Statement对象
         Statement targetStatement = getTargetConnection().createStatement();
+        //创建Statement的代理
         return new StatementProxy(this, targetStatement);
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql) throws SQLException {
+        //数据库类型，比如mysql、oracle等
         String dbType = getDbType();
         // support oracle 10.2+
         PreparedStatement targetPreparedStatement = null;
+        //如果是AT模式且开启全局事务，那么就会进入if分支
         if (BranchType.AT == RootContext.getBranchType()) {
             List<SQLRecognizer> sqlRecognizers = SQLVisitorFactory.get(sql, dbType);
             if (sqlRecognizers != null && sqlRecognizers.size() == 1) {
                 SQLRecognizer sqlRecognizer = sqlRecognizers.get(0);
                 if (sqlRecognizer != null && sqlRecognizer.getSQLType() == SQLType.INSERT) {
+                    //得到表的元数据
                     TableMeta tableMeta = TableMetaCacheFactory.getTableMetaCache(dbType).getTableMeta(getTargetConnection(),
                             sqlRecognizer.getTableName(), getDataSourceProxy().getResourceId());
+                    //得到表的主键列名
                     String[] pkNameArray = new String[tableMeta.getPrimaryKeyOnlyName().size()];
                     tableMeta.getPrimaryKeyOnlyName().toArray(pkNameArray);
                     targetPreparedStatement = getTargetConnection().prepareStatement(sql,pkNameArray);
@@ -123,6 +129,7 @@ public abstract class AbstractConnectionProxy implements Connection {
         if (targetPreparedStatement == null) {
             targetPreparedStatement = getTargetConnection().prepareStatement(sql);
         }
+        // 创建PreparedStatementProxy代理
         return new PreparedStatementProxy(this, targetPreparedStatement, sql);
     }
 
