@@ -96,6 +96,11 @@ public abstract class AbstractConnectionProxy implements Connection {
         return dataSourceProxy.getDbType();
     }
 
+    /**
+     *
+     * @return  返回一个StatementProxy实例
+     * @throws SQLException
+     */
     @Override
     public Statement createStatement() throws SQLException {
         //调用真实连接对象获得Statement对象
@@ -104,6 +109,12 @@ public abstract class AbstractConnectionProxy implements Connection {
         return new StatementProxy(this, targetStatement);
     }
 
+    /**
+     *
+     * @param sql
+     * @return 返回一个PreparedStatementProxy实例
+     * @throws SQLException
+     */
     @Override
     public PreparedStatement prepareStatement(String sql) throws SQLException {
         //数据库类型，比如mysql、oracle等

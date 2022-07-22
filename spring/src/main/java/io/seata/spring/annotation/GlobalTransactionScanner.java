@@ -184,6 +184,9 @@ public class GlobalTransactionScanner extends AbstractAutoProxyCreator
         ShutdownHook.getInstance().destroyAll();
     }
 
+    /**
+     * 初始化客户端：TMClient,RMClient
+     */
     private void initClient() {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Initializing Global Transaction Clients ... ");
@@ -192,11 +195,13 @@ public class GlobalTransactionScanner extends AbstractAutoProxyCreator
             throw new IllegalArgumentException(String.format("applicationId: %s, txServiceGroup: %s", applicationId, txServiceGroup));
         }
         //init TM
+        //底层，用netty实现
         TMClient.init(applicationId, txServiceGroup, accessKey, secretKey);
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Transaction Manager Client is initialized. applicationId[{}] txServiceGroup[{}]", applicationId, txServiceGroup);
         }
         //init RM
+        //底层，用netty实现
         RMClient.init(applicationId, txServiceGroup);
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Resource Manager is initialized. applicationId[{}] txServiceGroup[{}]", applicationId, txServiceGroup);
@@ -247,12 +252,14 @@ public class GlobalTransactionScanner extends AbstractAutoProxyCreator
                 }
                 interceptor = null;
                 //check TCC proxy
+                //是否是TCC模式
                 if (TCCBeanParserUtils.isTccAutoProxy(bean, beanName, applicationContext)) {
                     //TCC interceptor, proxy bean of sofa:reference/dubbo:reference, and LocalTCC
+                    //tcc模式的拦截器，
                     interceptor = new TccActionInterceptor(TCCBeanParserUtils.getRemotingDesc(beanName));
                     ConfigurationCache.addConfigListener(ConfigurationKeys.DISABLE_GLOBAL_TRANSACTION,
                         (ConfigurationChangeListener)interceptor);
-                } else {
+                } else {//不是TCC模式；Q:AT,XA,Saga模式分别是怎么样的？
                     Class<?> serviceInterface = SpringProxyUtils.findTargetClass(bean);
                     Class<?>[] interfacesIfJdk = SpringProxyUtils.findInterfaces(bean);
 
@@ -260,9 +267,11 @@ public class GlobalTransactionScanner extends AbstractAutoProxyCreator
                         && !existsAnnotation(interfacesIfJdk)) {
                         return bean;
                     }
-
+                    //TCC没有全局事务的概念
                     if (globalTransactionalInterceptor == null) {
+                        //生成全局事务拦截器实例
                         globalTransactionalInterceptor = new GlobalTransactionalInterceptor(failureHandlerHook);
+                        //添加到监听器
                         ConfigurationCache.addConfigListener(
                             ConfigurationKeys.DISABLE_GLOBAL_TRANSACTION,
                             (ConfigurationChangeListener)globalTransactionalInterceptor);
@@ -273,7 +282,7 @@ public class GlobalTransactionScanner extends AbstractAutoProxyCreator
                 LOGGER.info("Bean[{}] with name [{}] would use interceptor [{}]", bean.getClass().getName(), beanName, interceptor.getClass().getName());
                 // 检查是否是代理对象
                 if (!AopUtils.isAopProxy(bean)) {
-                    // 不是调用Spring代理（父级）
+                    // 如果不是调用Spring代理（父级）
                     bean = super.wrapIfNecessary(bean, beanName, cacheKey);
                 } else {
                     // 已经是代理对象，反射获取代理类中的已经存在的拦截器组合，然后添加到该集合当中

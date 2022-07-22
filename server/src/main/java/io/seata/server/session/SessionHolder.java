@@ -52,6 +52,7 @@ public class SessionHolder {
     private static final Logger LOGGER = LoggerFactory.getLogger(SessionHolder.class);
 
     /**
+     * <ul>常量配置</ul>
      * The constant CONFIG.
      */
     protected static final Configuration CONFIG = ConfigurationFactory.getInstance();
@@ -73,6 +74,7 @@ public class SessionHolder {
     public static final String RETRY_ROLLBACKING_SESSION_MANAGER_NAME = "retry.rollback.data";
 
     /**
+     * <ul>默认session保存路径</ul>
      * The default session store dir
      */
     public static final String DEFAULT_SESSION_STORE_FILE_DIR = "sessionStore";
@@ -83,6 +85,7 @@ public class SessionHolder {
     private static SessionManager RETRY_ROLLBACKING_SESSION_MANAGER;
 
     /**
+     * <ul>初始化各种session_manager</ul>
      * Init.
      *
      * @param mode the store mode: file, db
@@ -92,7 +95,7 @@ public class SessionHolder {
         if (StringUtils.isBlank(mode)) {
             mode = CONFIG.getConfig(ConfigurationKeys.STORE_MODE);
         }
-        StoreMode storeMode = StoreMode.get(mode);
+        StoreMode storeMode = StoreMode.get(mode);//获得保存模式：file?db?redis?
         if (StoreMode.DB.equals(storeMode)) {
             ROOT_SESSION_MANAGER = EnhancedServiceLoader.load(SessionManager.class, StoreMode.DB.getName());
             ASYNC_COMMITTING_SESSION_MANAGER = EnhancedServiceLoader.load(SessionManager.class, StoreMode.DB.getName(),

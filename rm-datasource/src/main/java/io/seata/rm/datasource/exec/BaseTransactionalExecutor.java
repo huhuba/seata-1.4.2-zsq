@@ -104,9 +104,10 @@ public abstract class BaseTransactionalExecutor<T, S extends Statement> implemen
 
     @Override
     public T execute(Object... args) throws Throwable {
+        // 获取xid
         String xid = RootContext.getXID();
         if (xid != null) {
-            // 获取xid
+            //绑定xid
             statementProxy.getConnectionProxy().bind(xid);
         }
         // 设置全局锁

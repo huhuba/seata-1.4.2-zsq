@@ -27,6 +27,7 @@ import java.sql.Statement;
 import java.util.List;
 
 /**
+ * <ul>执行模板类</ul>
  * The type Execute template.
  *
  * @author sharajava
@@ -62,7 +63,7 @@ public class ExecuteTemplate {
      * @return the t
      * @throws SQLException the sql exception
      */
-    public static <T, S extends Statement> T execute(List<SQLRecognizer> sqlRecognizers,
+    public static <T, S extends Statement> T execute(List<SQLRecognizer> sqlRecognizers,//sql识别器
                                                      StatementProxy<S> statementProxy,
                                                      StatementCallback<T, S> statementCallback,
                                                      Object... args) throws SQLException {
@@ -71,7 +72,7 @@ public class ExecuteTemplate {
             // Just work as original statement
             return statementCallback.execute(statementProxy.getTargetStatement(), args);
         }
-        // 得到数据库类型 ->MySQL
+        // 得到数据库类型 ->MySQL：我们使用的是MySql数据库
         String dbType = statementProxy.getConnectionProxy().getDbType();
         if (CollectionUtils.isEmpty(sqlRecognizers)) {
             //sqlRecognizers为SQL语句的解析器，获取执行的SQL，通过它可以获得SQL语句表名、相关的列名、类型的等信息，最后解析出对应的SQL表达式
@@ -87,7 +88,7 @@ public class ExecuteTemplate {
         } else {
             if (sqlRecognizers.size() == 1) {
                 SQLRecognizer sqlRecognizer = sqlRecognizers.get(0);
-                switch (sqlRecognizer.getSQLType()) {
+                switch (sqlRecognizer.getSQLType()) {//返回SQL类型
                     //下面根据是增、删、改、加锁查询、普通查询分别创建对应的处理器
                     case INSERT:
                         executor = EnhancedServiceLoader.load(InsertExecutor.class, dbType,
@@ -100,15 +101,16 @@ public class ExecuteTemplate {
                     case DELETE:
                         executor = new DeleteExecutor<>(statementProxy, statementCallback, sqlRecognizer);
                         break;
-                    case SELECT_FOR_UPDATE:
+                    case SELECT_FOR_UPDATE://查询不需要 before,after  Image
                         executor = new SelectForUpdateExecutor<>(statementProxy, statementCallback, sqlRecognizer);
                         break;
-                    default:
+                    default: //普通查询，查询不需要 before,after  Image
                         executor = new PlainExecutor<>(statementProxy, statementCallback);
                         break;
                 }
             } else {
                 // 此执行器可以处理一条SQL语句包含多个Delete、Update语句
+                //目前只针对同一个表
                 executor = new MultiExecutor<>(statementProxy, statementCallback, sqlRecognizers);
             }
         }

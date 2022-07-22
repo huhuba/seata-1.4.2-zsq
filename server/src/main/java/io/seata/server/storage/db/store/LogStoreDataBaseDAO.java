@@ -185,6 +185,11 @@ public class LogStoreDataBaseDAO implements LogStore {
         }
     }
 
+    /**
+     *
+     * @param globalTransactionDO the global transaction do，该类字段，基本对应 global_table列字段
+     * @return
+     */
     @Override
     public boolean insertGlobalTransactionDO(GlobalTransactionDO globalTransactionDO) {
         String sql = LogStoreSqlsFactory.getLogStoreSqls(dbType).getInsertGlobalTransactionSQL(globalTable);
@@ -206,7 +211,7 @@ public class LogStoreDataBaseDAO implements LogStore {
             ps.setInt(7, globalTransactionDO.getTimeout());
             ps.setLong(8, globalTransactionDO.getBeginTime());
             ps.setString(9, globalTransactionDO.getApplicationData());
-            return ps.executeUpdate() > 0;
+            return ps.executeUpdate() > 0;//返回是否执行成功
         } catch (SQLException e) {
             throw new StoreException(e);
         } finally {

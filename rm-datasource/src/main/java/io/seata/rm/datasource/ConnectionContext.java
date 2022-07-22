@@ -66,6 +66,7 @@ public class ConnectionContext {
     private final List<Savepoint> savepoints = new ArrayList<>(8);
 
     /**
+     * <ul>此连接是否需要全局锁</ul>
      * whether requires global lock in this connection
      *
      * @return

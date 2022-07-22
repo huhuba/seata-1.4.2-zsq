@@ -18,6 +18,7 @@ package io.seata.core.store;
 import io.seata.common.util.StringUtils;
 
 /**
+ * <ul>字段基本对应 lock_table</ul>
  * The type Lock do.
  *
  * @author zhangsen

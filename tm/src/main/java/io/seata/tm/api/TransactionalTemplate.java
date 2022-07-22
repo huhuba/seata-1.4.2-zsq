@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * <ul>全局事务执行业务逻辑的模板</ul>
  * Template of executing business logic with a global transaction.
  *
  * @author sharajava
@@ -123,13 +124,13 @@ public class TransactionalTemplate {
             try {
                 // 2. If the tx role is 'GlobalTransactionRole.Launcher', send the request of beginTransaction to TC,
                 //    else do nothing. Of course, the hooks will still be triggered.
-                // 开始执行全局事务
+                // 开启全局事务
                 beginTransaction(txInfo, tx);
 
                 Object rs;
                 try {
                     // Do Your Business
-                    // 执行当前业务逻辑：
+                    // 执行当前(自己的)业务逻辑：
                     // 1. 在TC注册当前分支事务，TC会在branch_table中插入一条分支事务数据
                     // 2. 执行本地update语句，并在执行前后查询数据状态，并把数据前后镜像存入到undo_log表中
                     // 3. 远程调用其他应用，远程应用接收到xid，也会注册分支事务，写入branch_table及本地undo_log表

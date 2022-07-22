@@ -126,14 +126,18 @@ public class DefaultCore implements Core {
     @Override
     public String begin(String applicationId, String transactionServiceGroup, String name, int timeout)
         throws TransactionException {
+        //1.创建全局事务的session
         GlobalSession session = GlobalSession.createGlobalSession(applicationId, transactionServiceGroup, name,
             timeout);
         MDC.put(RootContext.MDC_KEY_XID, session.getXid());
+        //2.全局事务session设置监听器
+        //SessionHolder.getRootSessionManager()获取全局session管理器DataBaseSessionManager
+        //观察者设计模式，创建DataBaseSessionManager
         session.addSessionLifecycleListener(SessionHolder.getRootSessionManager());
-
+        //3.调用全局session
         session.begin();
 
-        // transaction start event
+        // transaction start event  ：发布事务开始事件
         eventBus.post(new GlobalTransactionEvent(session.getTransactionId(), GlobalTransactionEvent.ROLE_TC,
             session.getTransactionName(), applicationId, transactionServiceGroup, session.getBeginTime(), null, session.getStatus()));
 

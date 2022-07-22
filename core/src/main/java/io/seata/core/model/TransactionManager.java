@@ -27,6 +27,7 @@ import io.seata.core.exception.TransactionException;
 public interface TransactionManager {
 
     /**
+     * <ul>开启一个全局事务，并返回该全局事务的XID</ul>
      * Begin a new global transaction.
      *
      * @param applicationId           ID of the application who begins this transaction.

@@ -77,7 +77,7 @@ public class Server {
         nettyRemotingServer.setListenPort(parameterParser.getPort());
         UUIDGenerator.init(parameterParser.getServerNode());
         //log store mode : file, db, redis
-        SessionHolder.init(parameterParser.getStoreMode());
+        SessionHolder.init(parameterParser.getStoreMode());//初始化session
 
         DefaultCoordinator coordinator = new DefaultCoordinator(nettyRemotingServer);
         coordinator.init();

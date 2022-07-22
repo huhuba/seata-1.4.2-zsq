@@ -149,26 +149,26 @@ public abstract class AbstractSessionManager implements SessionManager, SessionL
     }
 
     private void writeSession(LogOperation logOperation, SessionStorable sessionStorable) throws TransactionException {
-        if (!transactionStoreManager.writeSession(logOperation, sessionStorable)) {
-            if (LogOperation.GLOBAL_ADD.equals(logOperation)) {
+        if (!transactionStoreManager.writeSession(logOperation, sessionStorable)) {//writeSession:执行sql语句
+            if (LogOperation.GLOBAL_ADD.equals(logOperation)) {//新增全局事务
                 throw new GlobalTransactionException(TransactionExceptionCode.FailedWriteSession,
                     "Fail to store global session");
-            } else if (LogOperation.GLOBAL_UPDATE.equals(logOperation)) {
+            } else if (LogOperation.GLOBAL_UPDATE.equals(logOperation)) {//更新全局事务
                 throw new GlobalTransactionException(TransactionExceptionCode.FailedWriteSession,
                     "Fail to update global session");
-            } else if (LogOperation.GLOBAL_REMOVE.equals(logOperation)) {
+            } else if (LogOperation.GLOBAL_REMOVE.equals(logOperation)) {//删除全局事务
                 throw new GlobalTransactionException(TransactionExceptionCode.FailedWriteSession,
                     "Fail to remove global session");
-            } else if (LogOperation.BRANCH_ADD.equals(logOperation)) {
+            } else if (LogOperation.BRANCH_ADD.equals(logOperation)) {//新增分支事务
                 throw new BranchTransactionException(TransactionExceptionCode.FailedWriteSession,
                     "Fail to store branch session");
-            } else if (LogOperation.BRANCH_UPDATE.equals(logOperation)) {
+            } else if (LogOperation.BRANCH_UPDATE.equals(logOperation)) {//更新分支事务
                 throw new BranchTransactionException(TransactionExceptionCode.FailedWriteSession,
                     "Fail to update branch session");
-            } else if (LogOperation.BRANCH_REMOVE.equals(logOperation)) {
+            } else if (LogOperation.BRANCH_REMOVE.equals(logOperation)) {//删除分支事务
                 throw new BranchTransactionException(TransactionExceptionCode.FailedWriteSession,
                     "Fail to remove branch session");
-            } else {
+            } else {//报错
                 throw new BranchTransactionException(TransactionExceptionCode.FailedWriteSession,
                     "Unknown LogOperation:" + logOperation.name());
             }

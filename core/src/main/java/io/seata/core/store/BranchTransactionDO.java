@@ -21,6 +21,7 @@ import io.seata.common.util.StringUtils;
 import io.seata.core.model.BranchStatus;
 
 /**
+ *   <ul>字段基本对应 branch_table</ul>
  * branch transaction data object
  *
  * @author zhangsen

@@ -20,6 +20,7 @@ import io.seata.common.util.StringUtils;
 import java.util.Date;
 
 /**
+ * <ul>字段基本对应  global_table</ul>
  * Global Transaction data object
  *
  * @author zhangsen

@@ -230,10 +230,10 @@ public class ConnectionProxy extends AbstractConnectionProxy {
         //判断是否存在全局事务
         if (context.inGlobalTransaction()) {
             processGlobalTransactionCommit();
-        } else if (context.isGlobalLockRequire()) {
+        } else if (context.isGlobalLockRequire()) {//是否需要全局锁
             processLocalCommitWithGlobalLocks();
-        } else {
-            targetConnection.commit();
+        } else {//如果是普通事务
+            targetConnection.commit();//目标connection执行提交
         }
     }
 
@@ -254,6 +254,7 @@ public class ConnectionProxy extends AbstractConnectionProxy {
         } catch (TransactionException e) {
             recognizeLockKeyConflictException(e, context.buildLockKeys());
         }
+        //Q:全局锁在什么位置拿到？不拿到全局锁，没有办法进行分支事务的提交啊。
         try {
             //写入数据库undolog
             UndoLogManagerFactory.getUndoLogManager(this.getDbType()).flushUndoLogs(this);
@@ -280,7 +281,7 @@ public class ConnectionProxy extends AbstractConnectionProxy {
         }
         // 注册分支事务
         Long branchId = DefaultResourceManager.get().branchRegister(BranchType.AT, getDataSourceProxy().getResourceId(),
-            null, context.getXid(), null, context.buildLockKeys());
+            null, context.getXid(), null, context.buildLockKeys());//context.buildLockKeys():拿到本地锁？
         context.setBranchId(branchId);
     }
 
@@ -300,7 +301,7 @@ public class ConnectionProxy extends AbstractConnectionProxy {
      */
     public void changeAutoCommit() throws SQLException {
         getContext().setAutoCommitChanged(true);
-        setAutoCommit(false);
+        setAutoCommit(false);//将connection设置为非自动提交
     }
 
     @Override

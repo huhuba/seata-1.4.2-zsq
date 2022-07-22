@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 public abstract class AbstractDataSourceProxy implements SeataDataSourceProxy {
 
     /**
+     * <ul>目标数据源:被代理的数据源</ul>
      * The Target data source.
      */
     protected DataSource targetDataSource;

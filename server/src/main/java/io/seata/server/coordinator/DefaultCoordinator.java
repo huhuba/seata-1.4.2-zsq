@@ -152,6 +152,7 @@ public class DefaultCoordinator extends AbstractTCInboundHandler implements Tran
         this.core = new DefaultCore(remotingServer);
     }
 
+    //全局事务开启
     @Override
     protected void doGlobalBegin(GlobalBeginRequest request, GlobalBeginResponse response, RpcContext rpcContext)
         throws TransactionException {
@@ -167,6 +168,7 @@ public class DefaultCoordinator extends AbstractTCInboundHandler implements Tran
     protected void doGlobalCommit(GlobalCommitRequest request, GlobalCommitResponse response, RpcContext rpcContext)
         throws TransactionException {
         MDC.put(RootContext.MDC_KEY_XID, request.getXid());
+        //全局事务提交
         response.setGlobalStatus(core.commit(request.getXid()));
     }
 
@@ -174,6 +176,7 @@ public class DefaultCoordinator extends AbstractTCInboundHandler implements Tran
     protected void doGlobalRollback(GlobalRollbackRequest request, GlobalRollbackResponse response,
                                     RpcContext rpcContext) throws TransactionException {
         MDC.put(RootContext.MDC_KEY_XID, request.getXid());
+        //全局事务回滚
         response.setGlobalStatus(core.rollback(request.getXid()));
     }
 
@@ -181,6 +184,7 @@ public class DefaultCoordinator extends AbstractTCInboundHandler implements Tran
     protected void doGlobalStatus(GlobalStatusRequest request, GlobalStatusResponse response, RpcContext rpcContext)
         throws TransactionException {
         MDC.put(RootContext.MDC_KEY_XID, request.getXid());
+        //获得全局事务状态
         response.setGlobalStatus(core.getStatus(request.getXid()));
     }
 
@@ -195,6 +199,7 @@ public class DefaultCoordinator extends AbstractTCInboundHandler implements Tran
     protected void doBranchRegister(BranchRegisterRequest request, BranchRegisterResponse response,
                                     RpcContext rpcContext) throws TransactionException {
         MDC.put(RootContext.MDC_KEY_XID, request.getXid());
+        //注册分支事务
         response.setBranchId(
             core.branchRegister(request.getBranchType(), request.getResourceId(), rpcContext.getClientId(),
                 request.getXid(), request.getApplicationData(), request.getLockKey()));
@@ -213,6 +218,7 @@ public class DefaultCoordinator extends AbstractTCInboundHandler implements Tran
     protected void doLockCheck(GlobalLockQueryRequest request, GlobalLockQueryResponse response, RpcContext rpcContext)
         throws TransactionException {
         MDC.put(RootContext.MDC_KEY_XID, request.getXid());
+        //锁检查
         response.setLockable(
             core.lockQuery(request.getBranchType(), request.getResourceId(), request.getXid(), request.getLockKey()));
     }

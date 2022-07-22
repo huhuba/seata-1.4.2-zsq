@@ -141,18 +141,25 @@ public class GlobalTransactionalInterceptor implements ConfigurationChangeListen
         Method specificMethod = ClassUtils.getMostSpecificMethod(methodInvocation.getMethod(), targetClass);
         if (specificMethod != null && !specificMethod.getDeclaringClass().equals(Object.class)) {
             final Method method = BridgeMethodResolver.findBridgedMethod(specificMethod);
+            //获得相应类->方法的GlobalTransactional注解
             final GlobalTransactional globalTransactionalAnnotation =
                 getAnnotation(method, targetClass, GlobalTransactional.class);
+            //获得相应类->方法的GlobalLock注解
             final GlobalLock globalLockAnnotation = getAnnotation(method, targetClass, GlobalLock.class);
             boolean localDisable = disable || (degradeCheck && degradeNum >= degradeCheckAllowTimes);
             if (!localDisable) {
                 if (globalTransactionalAnnotation != null) {
+                    //如果全局事务注解不为null，处理全局事务
+                    //Q:开启了全局事务？
                     return handleGlobalTransaction(methodInvocation, globalTransactionalAnnotation);
                 } else if (globalLockAnnotation != null) {
+                    //如果全局事务注解为空，但是全局锁注解不为空，处理全局锁
+                    //处理全局锁，拿到了全局锁？
                     return handleGlobalLock(methodInvocation, globalLockAnnotation);
                 }
             }
         }
+        //处理代理类的相应方法
         return methodInvocation.proceed();
     }
 
@@ -167,8 +174,8 @@ public class GlobalTransactionalInterceptor implements ConfigurationChangeListen
             @Override
             public GlobalLockConfig getGlobalLockConfig() {
                 GlobalLockConfig config = new GlobalLockConfig();
-                config.setLockRetryInternal(globalLockAnno.lockRetryInternal());
-                config.setLockRetryTimes(globalLockAnno.lockRetryTimes());
+                config.setLockRetryInternal(globalLockAnno.lockRetryInternal());//全局锁重试（间隔？）
+                config.setLockRetryTimes(globalLockAnno.lockRetryTimes());//全局锁重试次数
                 return config;
             }
         });
@@ -179,11 +186,15 @@ public class GlobalTransactionalInterceptor implements ConfigurationChangeListen
         boolean succeed = true;
         try {
             return transactionalTemplate.execute(new TransactionalExecutor() {
+                //最重要的一个方法
                 @Override
                 public Object execute() throws Throwable {
-                    return methodInvocation.proceed();
+                    //返回代理类中相应方法的执行结果
+                    return methodInvocation.proceed();//执行代理类中相应方法
                 }
-                // 获取事务名称，默认获取方法名
+                /**
+                 * 获取事务名称，默认获取方法名
+                  */
                 public String name() {
                     String name = globalTrxAnno.name();
                     if (!StringUtils.isNullOrEmpty(name)) {
@@ -232,20 +243,20 @@ public class GlobalTransactionalInterceptor implements ConfigurationChangeListen
             // 执行异常
             TransactionalExecutor.Code code = e.getCode();
             switch (code) {
-                case RollbackDone:
+                case RollbackDone://完成回滚，Q:这也是一种异常？
                     throw e.getOriginalException();
-                case BeginFailure:
+                case BeginFailure://开始失败
                     succeed = false;
                     failureHandler.onBeginFailure(e.getTransaction(), e.getCause());
                     throw e.getCause();
-                case CommitFailure:
+                case CommitFailure://提交失败
                     succeed = false;
                     failureHandler.onCommitFailure(e.getTransaction(), e.getCause());
                     throw e.getCause();
-                case RollbackFailure:
+                case RollbackFailure://回滚失败
                     failureHandler.onRollbackFailure(e.getTransaction(), e.getOriginalException());
                     throw e.getOriginalException();
-                case RollbackRetrying:
+                case RollbackRetrying://回滚重试
                     failureHandler.onRollbackRetrying(e.getTransaction(), e.getOriginalException());
                     throw e.getOriginalException();
                 default:

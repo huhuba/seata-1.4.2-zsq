@@ -57,9 +57,8 @@ public class SeataDataSourceBeanPostProcessor implements BeanPostProcessor {
                 //Only put and init proxy, not return proxy.
                 DataSourceProxyHolder.get().putDataSource((DataSource) bean, dataSourceProxyMode);
             }
-
             //If is SeataDataSourceProxy, return the original data source.
-            if (bean instanceof SeataDataSourceProxy) {
+            if (bean instanceof SeataDataSourceProxy) {//如果是代理数据源
                 LOGGER.info("Unwrap the bean of the data source," +
                     " and return the original data source to replace the data source proxy.");
                 return ((SeataDataSourceProxy) bean).getTargetDataSource();

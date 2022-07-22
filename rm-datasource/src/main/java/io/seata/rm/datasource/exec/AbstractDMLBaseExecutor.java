@@ -77,10 +77,11 @@ public abstract class AbstractDMLBaseExecutor<T, S extends Statement> extends Ba
 
     @Override
     public T doExecute(Object... args) throws Throwable {
+        //获得 ConnectProxy
         AbstractConnectionProxy connectionProxy = statementProxy.getConnectionProxy();
-        if (connectionProxy.getAutoCommit()) {
-            return executeAutoCommitTrue(args);
-        } else {
+        if (connectionProxy.getAutoCommit()) {//如果是自动提交
+            return executeAutoCommitTrue(args);//将connection的自动提交设置为false，之后调用executeAutoCommitFalse方法
+        } else {//如果不是自动提交
             return executeAutoCommitFalse(args);
         }
     }
@@ -146,7 +147,7 @@ public abstract class AbstractDMLBaseExecutor<T, S extends Statement> extends Ba
                 T result = executeAutoCommitFalse(args);
                 // 执行提交
                 connectionProxy.commit();
-                return result;
+                return result;//返回业务执行结果
             });
         } catch (Exception e) {
             // when exception occur in finally,this exception will lost, so just print it here
@@ -162,6 +163,7 @@ public abstract class AbstractDMLBaseExecutor<T, S extends Statement> extends Ba
     }
 
     /**
+     *<ul>增删改：各自实现自己的 beforeImage方法</ul>
      * Before image table records.
      *
      * @return the table records
@@ -170,6 +172,7 @@ public abstract class AbstractDMLBaseExecutor<T, S extends Statement> extends Ba
     protected abstract TableRecords beforeImage() throws SQLException;
 
     /**
+     * <ul>增删改：各自实现自己的 afterImage方法</ul>
      * After image table records.
      *
      * @param beforeImage the before image

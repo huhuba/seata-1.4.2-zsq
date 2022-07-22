@@ -176,7 +176,7 @@ public class GlobalSession implements SessionLifecycle, SessionStorable {
 
     @Override
     public void begin() throws TransactionException {
-        this.status = GlobalStatus.Begin;
+        this.status = GlobalStatus.Begin;//将全局事务状态设置为  Begin
         this.beginTime = System.currentTimeMillis();
         this.active = true;
         for (SessionLifecycleListener lifecycleListener : lifecycleListeners) {
